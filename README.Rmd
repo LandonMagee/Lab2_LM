@@ -221,7 +221,8 @@ Learn more about resampling by typing `?terra::resample`
 Exporting raster layers you have worked on using the `writeRaster` command from the terra package like this:
 ```{r, eval = FALSE}
 #write raster layers to file
-writeRaster(deer_w, here::here("Lab2","Output", "DEER_W.tiff"), overwrite = TRUE)
+writeRaster(deer_w, here::here("Output", "deer_w2.tiff"), overwrite = TRUE)
+
 ```
 
 For today's lab we will us elevation and distance to human access rasters we created before the lab and re-load them from our working directory. 
