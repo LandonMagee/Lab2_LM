@@ -36,7 +36,7 @@ crs(wolfyht,proj = TRUE) # note this is a UTM projected map system.
 str(wolfyht)
 # Note that there are two fields, Easting and Northing which are the X and Y coordinates in UTM zone 11.  We will use these to map it for each PackID
 # base plot of wolf packs by color with legend
-base::plot(wolfyht$EASTING,wolfyht$NORTHING,col=c("red","blue")[wolfyht$PackID],ylab="Northing",xlab="Easting")
+base::plot(wolfyht$EASTING, wolfyht$NORTHING, col=c("red","blue")[wolfyht$PackID], ylab="Northing", xlab="Easting")
 legend(555000,5742500,unique(wolfyht$Pack),col=c("blue","red"),pch=1) 
 
 
@@ -48,13 +48,12 @@ tm_shape(elc_habitat)+tm_sf("MOOSE_W", border.alpha = 0)
 
 #construct ggplot2 plot for Moose Winter Habitat
 # Note - color = NA in the geom_sf() removes the border lines
-elk_plot<-ggplot() + 
+moose_plot <- ggplot() + 
   geom_sf(data = elc_habitat, mapping = aes(fill = as.factor(MOOSE_W)), color = NA) + labs(x="Easting",y="Northing") + theme(axis.text.y = element_text(angle = 90, hjust=0.5))
 
 #adjust fill colors of MOOSE_W  (note that I just selected some random colors, but made "7" as blue)
-elk_plot2 <- elk_plot + scale_fill_manual(name="MOOSE_W",values=c("gray","gray", "red", "orange", "yellow", "green","darkblue"))
-elk_plot2
-
+moose_plot2 <- moose_plot + scale_fill_manual(name="MOOSE_W",values=c("gray","gray", "red", "orange", "yellow", "green","darkblue"))
+moose_plot2
 
 ## ----------------------------------------------------------------------------------------
 #construct ggplot2 plot for Moose Winter Habitat
@@ -74,11 +73,13 @@ mask.raster <- rast()
 #set extent (note that I customized this extent so it covered both elc_habitat and humanacess)
 ext(mask.raster) <- c(xmin=443680.6, xmax=650430.4, ymin=5618416, ymax=5789236) 	
 
-#set the resolution to 30 m 
-res(mask.raster)<-30
+#set the resolution to 300 m 
+res(mask.raster)<-300
 
 #match projection to elc_habitat shapefile
 crs(mask.raster)<- "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
+
+plot(mask.raster)
 
 #set all values of mask.raster to zero
 mask.raster[]<-0
@@ -107,7 +108,8 @@ plot(wolf_w_stars)
 
 #can play interactive maps with tmap_mode view
 tmap_mode("view")
-tm_shape(wolf_w_stars) +tm_raster() 
+tm_shape(wolf_w_stars) + tm_raster() 
+
 
 ## ---- eval = FALSE-----------------------------------------------------------------------
 ## #resample elevation and humanaccess to match mask.raster
@@ -118,11 +120,19 @@ tm_shape(wolf_w_stars) +tm_raster()
 
 ## ---- eval = FALSE-----------------------------------------------------------------------
 ## #write raster layers to file
-## writeRaster(deer_w, here::here("Lab2","Output", "DEER_W.tiff"), overwrite = TRUE)
+writeRaster(deer_w, here::here("Lab2","Output", "DEER_W.tiff"), overwrite = TRUE)
 
 
 ## ----------------------------------------------------------------------------------------
 #reading in elevation raster with terra
+elevation2<-rast(here::here("Data","Elevation2.tif")) #resampled
+
+#reading in elevation raster with stars
+elevation2_stars <- read_stars(here::here("Data","Elevation2.tif"))
+
+#reading in elevation raster with terra
+disthumanaccess<-rast(here::here("Data","DistFromHumanAccess2.tif")) 
+disthighhumanaccess<-rast(here::here("Data","DistFromHighHumanAccess2.tif")) 
 elevation2<-rast(here::here("Data","Elevation2.tif")) #resampled
 
 #reading in elevation raster with stars
@@ -486,7 +496,11 @@ summary(wolfused)
 
 
 ## ----------------------------------------------------------------------------------------
-plot(disthumanaccess2)
+plot(disthumanaccess)
+plot(wolfyht, add = TRUE)
+
+
+plot(deer_w)
 plot(wolfyht, add = TRUE)
 
 
@@ -552,7 +566,7 @@ aggregate(Elevation2 ~ pack, data=wolfused, FUN=mean)
 aggregate(DistFromHumanAccess2 ~ pack, data=wolfused, FUN=mean)
 aggregate(.~pack, data=wolfused[c("pack", "DEER_W", "ELK_W", "MOOSE_W", "SHEEP_W", "GOAT_W")], mean)
 
-sapply(wolfused, median, na.rm=TRUE)
+sapply(wolfused[2:10], median, na.rm=TRUE)
 
 
 ## ----------------------------------------------------------------------------------------

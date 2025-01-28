@@ -62,7 +62,7 @@ related to wolf occupancy.
 The R packages we will load up front today are:
 
 ```{r eval = TRUE, results = 'hide'}
-packages <- c("ks", "here", "plotrix", "lattice", "adehabitatHR", "maptools", "mapview", "ggplot2","colorRamps", "sf", "terra", "tmap", "stars", "dplyr")
+packages <- c("ks", "here", "plotrix", "lattice", "adehabitatHR", "mapview", "ggplot2","colorRamps", "sf", "terra", "tmap", "stars", "dplyr")
 ```
 
 Using the wrapper package reviewed in Lab 1:
@@ -309,7 +309,7 @@ levels(humanaccess$SUM_CLASS)[3]<-"LOW"
 levels(humanaccess$SUM_CLASS)[5]<-"MODERATE"
 levels(humanaccess$SUM_CLASS)[6]<-"NIL"
 
-#create indicator variable for high or not high human access
+#create indicator variable for high or very high human access
 highaccess<-humanaccess[humanaccess$SUM_CLASS=="HIGH" | humanaccess$SUM_CLASS=="VERY HIGH", ]
 
 #use package tmap() to create simple plots
@@ -317,6 +317,7 @@ humanaccess_plot <- tm_shape(humanaccess)+tm_sf()
 humanaccess_plot + tm_shape(highaccess) + tm_sf(col = "red") 
 ```
 Now you would go through and rasterize this following the steps above to make this a raster file. Note I already did this with the distance to high human access layer.
+
 
 # Objective 2 - Home Range Analysis 
 
@@ -371,7 +372,7 @@ plot(rd, col="black", add=TRUE)
 #check area in square meters for each Red Deer wolf pack
 as.data.frame(cp.rd)
 
-#calculate area for different percents of MPC in square meters. 
+#calculate area for different percents of MCP in square meters. 
 mcp.area(rd, percent=seq(50, 100, by=5))
 ```
 
@@ -431,6 +432,7 @@ coordinates(bv) <- xy
 crs(bv) <-  "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
 
 # Fit 99% mpc
+plot.new()
 cp.bow <- mcp(bv, percent=99)
 plot(bv, col="black")
 plot(cp.bow[cp.bow@data$id=="63",], col="blue",add=TRUE)
@@ -606,8 +608,14 @@ Note today we are using tidyverse, which depends on tidyr, but I've loaded it se
 disthumanaccess <- resample(disthumanaccess, deer_w)
 disthighhumanaccess <- resample(disthighhumanaccess, deer_w)
 
+
+crs(elevation2) <-  "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
+crs(disthumanaccess) <-  "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
+crs(disthighhumanaccess) <-  "+proj=utm +zone=11 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0"
+
 #stacking rasters
-all_rasters<-c(deer_w, moose_w, elk_w, sheep_w, goat_w, wolf_w,elevation2, disthumanaccess, disthighhumanaccess)
+all_rasters<-c(deer_w, moose_w, elk_w, sheep_w, goat_w, wolf_w, elevation2, disthumanaccess, disthighhumanaccess)
+
 
 #with stars
 #all_rasters_stars<-c(deer_w_stars, moose_w_stars, elk_w_stars, sheep_w_stars, goat_w_stars, wolf_w_stars,elevation2_stars, disthumanaccess2_stars, disthighhumanacess_stars)
@@ -644,7 +652,7 @@ rdused$pack <- c("Red Deer")
 bvused <- cov.outBV
 bvused$pack <- c("Bow Valley")
 
-wolfused <- merge(rdused, bvused, all.x= TRUE, all.y = TRUE)
+wolfused <- merge(rdused, bvused, all.x = TRUE, all.y = TRUE)
 str(wolfused)
 head(wolfused)
 
@@ -677,7 +685,7 @@ dim(wolfused)
 Ungulate habitat suitability models first. 
 ```{r}
 par(mfrow = c(2,3))
-hist(wolfused$DEER_W)
+hist(wolfused$DEER_W) ### wolves seems to use medium to high habitat suitability indexes for deer
 hist(wolfused$ELK_W)
 hist(wolfused$MOOSE_W)
 hist(wolfused$SHEEP_W)
@@ -728,6 +736,8 @@ multhist(list(wolfused$GOAT_W[wolfused$pack=="Bow Valley"],wolfused$GOAT_W[wolfu
 bwplot(ELK_W + DEER_W+MOOSE_W+ SHEEP_W+GOAT_W~pack, auto.key=TRUE,allow.multiple = TRUE,data=wolfused, outer=TRUE)
 
 bwplot(DistFromHumanAccess2 + DistFromHighHumanAccess2 + Elevation2~pack, auto.key=TRUE,allow.multiple = TRUE,data=wolfused, outer=TRUE)
+
+bwplot(WOLF_W~pack, auto.key=TRUE,allow.multiple = TRUE,data=wolfused, outer=TRUE)
 ```
 
 ## Summary Statistics
